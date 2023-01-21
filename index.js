@@ -84,107 +84,15 @@ class Board{
 }
 
 // Normalmente haria la logica de los tableros en un modulo distinto phase_1.js y la logica de los jugadores en un modulo distinto phase_2.js pero js me esta dando tantos problemas para algo tan sencillo que voy a dejarlo todo aqui
-
-
-
-inst_1 = new Board()
-inst_2 = new Board()
-
-inst_1.place_ship(CARRIER)
-inst_1.place_ship(DESTROYER)
-inst_1.place_ship(SUBMARINE)
-inst_1.place_ship(BOAT)
-inst_1.place_ship(BOAT)
-
-inst_1.get_ship_positions()
-//console.log(inst_1.positions)
-//console.table(inst_1.board)
-
-inst_2.place_ship(CARRIER)
-inst_2.place_ship(DESTROYER)
-inst_2.place_ship(SUBMARINE)
-inst_2.place_ship(BOAT)
-inst_2.place_ship(BOAT)
-
-inst_2.get_ship_positions()
-//console.log(inst_2.positions)
-//console.table(inst_2.board)
-
-
-
-
-
-
-
-const tablero = [
-    [
-      ' ',  ' ', ' ',
-      ' ',  ' ', ' ',
-      '🚢', ' ', ' ',
-      ' '
-    ],
-    [
-      ' ',  ' ', ' ',
-      ' ',  ' ', ' ',
-      '🚢', ' ', ' ',
-      ' '
-    ],
-    [
-      ' ',  ' ', ' ',
-      ' ',  ' ', ' ',
-      '🚢', ' ', ' ',
-      ' '
-    ],
-    [
-      ' ', ' ', ' ', ' ',
-      ' ', ' ', ' ', ' ',
-      ' ', ' '
-    ],
-    [
-      ' ', ' ', ' ', ' ',
-      ' ', ' ', ' ', ' ',
-      ' ', ' '
-    ],
-    [
-      ' ', ' ', ' ', ' ',
-      ' ', ' ', ' ', ' ',
-      ' ', ' '
-    ],
-    [
-      ' ',  '🚢', '🚢',
-      '🚢', '🚢', ' ',
-      ' ',  ' ',  '🚢',
-      ' '
-    ],
-    [
-      ' ', '🚢', ' ',
-      ' ', ' ',  ' ',
-      ' ', ' ',  ' ',
-      ' '
-    ],
-    [
-      ' ',  ' ', ' ',
-      ' ',  ' ', ' ',
-      '🚢', ' ', ' ',
-      ' '
-    ],
-    [
-      ' ',  ' ', ' ',
-      ' ',  ' ', ' ',
-      '🚢', ' ', ' ',
-      ' '
-    ]
-  ]
-
-
-inst_shadow = new Board()
-shadow = inst_shadow.board
-
+// Clase jugador, que utiliza tableros y puede disparar
 class Jugador{
     constructor(){
         this.board = new Board()
         this.shadow = new Board()
         this.shadow = this.shadow.board
+        this.bullets = 100
+        this.last_shot = []
+        this.hits = 0
     }
     setup_ships(){
         this.board.place_ship(CARRIER)
@@ -196,8 +104,46 @@ class Jugador{
     show_board(){
         console.table(this.board.board)
     }
+    shoot(board = this.enemy_board){
+        this.bullets--
+        let x = Math.floor(Math.random() * DIMENSION)
+        let y = Math.floor(Math.random() * DIMENSION)
+        this.last_shot = [x, y]
+        if (this.shadow[x][y] == " "){
+            this.shadow[x][y] = 'X'
+        }else{
+            this.shoot()
+        }
+        if (board[x][y] == " "){
+            board[x][y] = "💧"
+        }else if (board[x][y] == "🚢"){
+            this.hits++
+            board[x][y] = "💥"
+        }
+    }
 }
 
-inst_1 = new Jugador()
-inst_1.setup_ships()
-inst_1.show_board()
+
+// Se crean dos jugadores
+player_one = new Jugador()
+player_one.setup_ships()
+
+player_two = new Jugador()
+player_two.setup_ships()
+
+// Se crean dos referencias, para los tableros de cada jugador (para que puedan dispararse)
+var enemy_board_for_player_one = structuredClone(player_two.board.board) // En serio js, no puedes hacer copias de forma normal? (referencia: https://stackoverflow.com/questions/122102/what-is-the-most-efficient-way-to-deep-clone-an-object-in-javascript)
+var enemy_board_for_player_two = structuredClone(player_one.board.board)
+
+function turno(){ // Me estoy volviendo loco intentando que un bucle coja bien el scope...
+    player_one.shoot(enemy_board_for_player_one)
+    player_two.shoot(enemy_board_for_player_two)
+}
+
+
+turno()
+turno()
+
+
+console.table(enemy_board_for_player_one)
+console.table(enemy_board_for_player_two)
