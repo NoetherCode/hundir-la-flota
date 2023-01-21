@@ -104,7 +104,7 @@ class Jugador{
     show_board(){
         console.table(this.board.board)
     }
-    shoot(board = this.enemy_board){
+    shoot(board){
         this.bullets--
         let x = Math.floor(Math.random() * DIMENSION)
         let y = Math.floor(Math.random() * DIMENSION)
@@ -112,7 +112,7 @@ class Jugador{
         if (this.shadow[x][y] == " "){
             this.shadow[x][y] = 'X'
         }else{
-            this.shoot()
+            this.shoot(board)
         }
         if (board[x][y] == " "){
             board[x][y] = "💧"
@@ -131,19 +131,13 @@ player_one.setup_ships()
 player_two = new Jugador()
 player_two.setup_ships()
 
-// Se crean dos referencias, para los tableros de cada jugador (para que puedan dispararse)
-var enemy_board_for_player_one = structuredClone(player_two.board.board) // En serio js, no puedes hacer copias de forma normal? (referencia: https://stackoverflow.com/questions/122102/what-is-the-most-efficient-way-to-deep-clone-an-object-in-javascript)
-var enemy_board_for_player_two = structuredClone(player_one.board.board)
-
-function turno(){ // Me estoy volviendo loco intentando que un bucle coja bien el scope...
-    player_one.shoot(enemy_board_for_player_one)
-    player_two.shoot(enemy_board_for_player_two)
+// Se crean los turnos (normalmente crearia una funcion turno con un disparo de cada, pero al ser automatico no tiene sentido)
+while (player_one.hits < 11 && player_two.hits < 11){
+    player_one.shoot(player_two.board.board)
+    player_two.shoot(player_one.board.board)
 }
 
-
-turno()
-turno()
-
-
-console.table(enemy_board_for_player_one)
-console.table(enemy_board_for_player_two)
+console.table(player_one.board.board)
+console.table(player_two.board.board)
+console.log(player_one.hits)
+console.log(player_two.hits)
