@@ -117,15 +117,15 @@ class Board{
 // Normalmente haria la logica de los tableros en un modulo distinto phase_1.js y la logica de los jugadores en un modulo distinto phase_2.js pero js me esta dando tantos problemas para algo tan sencillo que voy a dejarlo todo aqui
 // Clase jugador, que utiliza tableros y puede disparar
 class Jugador{
-    constructor(){
+    constructor(){ // Inicializa la clase con la info que necesita
         this.board = new Board()
         this.shadow = new Board()
-        this.shadow = this.shadow.board
+        this.shadow = this.shadow.board // Este es un tablero vacio donde voy a ir registrando los disparos, para que no se repitan
         this.bullets = 100
         this.last_shot = []
         this.hits = 0
     }
-    setup_ships(){
+    setup_ships(){ // Aqui se colocan todos los barcos
         this.board.place_ship(CARRIER)
         this.board.place_ship(GUNNER)
         this.board.place_ship(SUBMARINE)
@@ -138,21 +138,21 @@ class Jugador{
         this.board.place_ship(BOAT)
     }
     show_board(){
-        console.table(this.board.board)
+        console.table(this.board.board) // Un print sencillito
     }
-    shoot(board){
+    shoot(board){ // Metodo de disparo
         let x = Math.floor(Math.random() * DIMENSION)
         let y = Math.floor(Math.random() * DIMENSION)
         this.last_shot = [x, y]
-        if (this.shadow[x][y] == " "){
+        if (this.shadow[x][y] == " "){ // Permite comprobar que no se dispara al mismo sitio
             this.shadow[x][y] = 'X'
         }else{
             this.shoot(board)
         }
-        if (board[x][y] == " "){
+        if (board[x][y] == " "){ // Una vez el disparo es unico, se procede a ver el resultado
             board[x][y] = "💧"
             this.bullets--
-        }else if (board[x][y] == "🚢"){
+        }else if (board[x][y] == "🚢"){ // Y si se acierta, se dispara otra vez
             this.bullets--
             this.hits++
             board[x][y] = "💥"
@@ -174,20 +174,22 @@ console.log(" ---> Jugador 2")
 player_two.show_board()
 console.log("---------| EMPIEZAN LAS RONDAS |--------")
 
-let contador = 0
-while (player_one.hits < 24 && player_two.hits < 24){
+let contador = 0 // Empiezan las rondas
+while (player_one.hits < 24 && player_two.hits < 24){ // Mientras ningun jugador haya ganado, se suceden las rondas
     contador ++
     console.log(`RONDA ${contador}`)
     console.log(`Dispara el jugador 1 (con ${player_one.hits} aciertos hasta ahora)`)
     player_one.shoot(player_two.board.board)
     console.log(`El jugador 1 ha disparado a [${player_one.last_shot}], le quedan ${player_one.bullets} disparos`)
-    player_two.show_board()
+    player_two.show_board() // He decidido mostrar solo los tableros del enemigo por claridad visual, para añadir el tablero del propio jugador simplemente se añadiria mas abajo la linea comentada
+    //player_one.show_board()
     console.log(`Dispara el jugador 2 (con ${player_two.hits} aciertos hasta ahora)`)
     player_two.shoot(player_one.board.board)
     console.log(`El jugador 2 ha disparado a [${player_two.last_shot}], le quedan ${player_two.bullets} disparos`)
-    player_one.show_board()
+    player_one.show_board() // Lo mismo, se omite la linea por claridad visual. Pero se puede descomentar sin problema
+    //player_two.show_board()
 }
-if (player_one.hits == 24){
+if (player_one.hits == 24){ // Se declara el vencedor una vez ha terminado el juego. Aqui decido volver a mostrar el tablero del vencedor
     console.log(`El jugador 1 es el vencedor!`)
     player_one.show_board()
 }else{
