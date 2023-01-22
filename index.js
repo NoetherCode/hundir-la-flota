@@ -1,17 +1,18 @@
 // Tengo la sensacion de que esta bastante espaguettico (eso, o que estoy demasiado acostumbrado a Python)
 // CUALQUER FEEDBACK ES MAS QUE BIENVENIDO, JS ES BASTANTE RARUNO Y ME HE PELEADO BASTANTE CON LA PROPIA SINTAXIS (algo que nunca me habia ocurrido con Python o Ruby)
+// ESTE ES MI PRIMER SCRIPT EN JS, ES 100% SEGURO QUE SE PUEDE MEJORAR. CUALQUIER CONSEJO SOBRE COMO HACER UN CODIGO MAS IDIOMATICO ES SUPER BIENVENIDO. GRACIAS!!!
 
 const DIMENSION = 10 // Usaria un objeto INFO, pero de cara a usuario es mejor invocar CARRIER que INFO.CARRIER
-const CARRIER = 4
-const DESTROYER = 3
-const SUBMARINE = 2
+const CARRIER = 5
+const GUNNER = 4
+const SUBMARINE = 3
+const CRUISER = 2
 const BOAT = 1
 
 // Aqui voy a guardar las posiciones de los barcos (variable auxiliar)
 let positions = [] // Sortearlo es una fiesta, resulta que js sortea por string en vez de por valor. Se queda sin sortear
 
 
-// Funciones para la fase 1
 function x_or_y(){
     return Math.floor(Math.random() * 2) // Simplemente crea valores 0 o 1
 }
@@ -54,6 +55,36 @@ function ship_placer(board, x, y, ship_type){ // Coloca un barco concreto en el 
     return board // Devuelve el tablero con el barco ya colocado
 }
 
+function setup_game(dim = 10){ // Prepara el juego, y evita que se ponga un barco encima del otro. Cuando se tiene un tablero valido, entonces se termina la fase 1
+    player_one = new Jugador()
+    player_one.setup_ships()
+    player_two = new Jugador()
+    player_two.setup_ships()
+    let count_one = 0 // A partir de aqui se comprueba el tablero
+    let count_two = 0
+    for (let total_rows = 0; total_rows < dim; total_rows++){
+        let row = player_one.board.board[total_rows]
+        for (let total_columns = 0; total_columns < dim; total_columns++){
+            if (row[total_columns] == '🚢'){
+                count_one++
+            }
+        }
+    }
+    for (let total_rows = 0; total_rows < dim; total_rows++){
+        let row = player_two.board.board[total_rows]
+        for (let total_columns = 0; total_columns < dim; total_columns++){
+            if (row[total_columns] == '🚢'){
+                count_two++
+            }
+        }
+    }
+    if (count_one < 24 || count_two < 24){ // Esta recursion hace que no se permita un barco encima del otro. Creo que se puede hacer mucho mejor, pero me ha parecido una buena solucion de junior
+        setup_game() // Me encantaria saber como mejorar esta parte del codigo
+    }
+}
+
+
+
 // Clase tablero, que creara los tableros de los jugadores
 
 class Board{
@@ -65,7 +96,7 @@ class Board{
         for (let total_rows = 0; total_rows < dim; total_rows++){
             let row = [] // Prepara el array n
             for (let total_columns = 0; total_columns < dim; total_columns++){
-                row[total_columns] = " " // Llena el array con strings backspace UNICOS (.fill solo me hace una referencia... por que js, por que)
+                row[total_columns] = " " // Llena el array con strings backspace UNICOS (.fill solo me hace una referencia... por que js, por que.. hacer copia es realmente dificil)
             }
             board[total_rows] = row // Llena el array con filas UNICAS (de nuevo .fill solo hace referencia)
         }
@@ -75,7 +106,7 @@ class Board{
         let x = Math.floor(Math.random() * DIMENSION)
         let y = Math.floor(Math.random() * DIMENSION)
         board[x][y] = '🚢'
-        ship_placer(board, x, y, ship_info) // El scope de las variables esta siendo una fiesta, en Python utilizar global seria perfecto para este caso
+        ship_placer(board, x, y, ship_info)
     }
     get_ship_positions(){
         this.positions = positions
@@ -96,8 +127,13 @@ class Jugador{
     }
     setup_ships(){
         this.board.place_ship(CARRIER)
-        this.board.place_ship(DESTROYER)
+        this.board.place_ship(GUNNER)
         this.board.place_ship(SUBMARINE)
+        this.board.place_ship(SUBMARINE)
+        this.board.place_ship(CRUISER)
+        this.board.place_ship(CRUISER)
+        this.board.place_ship(CRUISER)
+        this.board.place_ship(BOAT)
         this.board.place_ship(BOAT)
         this.board.place_ship(BOAT)
     }
@@ -105,7 +141,6 @@ class Jugador{
         console.table(this.board.board)
     }
     shoot(board){
-        this.bullets--
         let x = Math.floor(Math.random() * DIMENSION)
         let y = Math.floor(Math.random() * DIMENSION)
         this.last_shot = [x, y]
@@ -116,28 +151,46 @@ class Jugador{
         }
         if (board[x][y] == " "){
             board[x][y] = "💧"
+            this.bullets--
         }else if (board[x][y] == "🚢"){
+            this.bullets--
             this.hits++
             board[x][y] = "💥"
+            console.log(`Ha acertado en [${x}, ${y}]! Vuelve a disparar`)
+            this.shoot(board)
         }
     }
 }
 
+// Se crean dos jugadores con tableros validos (Fase 1)
+setup_game()
 
-// Se crean dos jugadores
-player_one = new Jugador()
-player_one.setup_ships()
+// Se empieza el juego (Fase 2)
 
-player_two = new Jugador()
-player_two.setup_ships()
+console.log("----------| EMPIEZA EL JUEGO |----------")
+console.log(" ---> Jugador 1")
+player_one.show_board()
+console.log(" ---> Jugador 2")
+player_two.show_board()
+console.log("---------| EMPIEZAN LAS RONDAS |--------")
 
-// Se crean los turnos (normalmente crearia una funcion turno con un disparo de cada, pero al ser automatico no tiene sentido)
-while (player_one.hits < 11 && player_two.hits < 11){
+let contador = 0
+while (player_one.hits < 24 && player_two.hits < 24){
+    contador ++
+    console.log(`RONDA ${contador}`)
+    console.log(`Dispara el jugador 1 (con ${player_one.hits} aciertos hasta ahora)`)
     player_one.shoot(player_two.board.board)
+    console.log(`El jugador 1 ha disparado a [${player_one.last_shot}], le quedan ${player_one.bullets} disparos`)
+    player_two.show_board()
+    console.log(`Dispara el jugador 2 (con ${player_two.hits} aciertos hasta ahora)`)
     player_two.shoot(player_one.board.board)
+    console.log(`El jugador 2 ha disparado a [${player_two.last_shot}], le quedan ${player_two.bullets} disparos`)
+    player_one.show_board()
 }
-
-console.table(player_one.board.board)
-console.table(player_two.board.board)
-console.log(player_one.hits)
-console.log(player_two.hits)
+if (player_one.hits == 24){
+    console.log(`El jugador 1 es el vencedor!`)
+    player_one.show_board()
+}else{
+    console.log(`El jugador 2 es el vencedor!`)
+    player_two.show_board()
+}
